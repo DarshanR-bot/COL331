@@ -83,9 +83,9 @@
 
 int main(int argc, char *argv[])
 {   
-    int num_procs = 3;
-    int deadlines[3] = {7, 24, 15};
-    int exectime[3] = {5, 6, 4};
+    int num_procs = 5;
+    int deadlines[5] = {5, 9, 8, 18, 4};
+    int exectime[5] = {1, 2, 3, 5, 2};
 
     int parent_pid = getpid();
 

@@ -268,12 +268,11 @@ sys_send_multi(int sender_pid, int rec_pids[], void *msg) {
   release(&shared.lock);
   return 0;
 }
-
+/*
 int
 is_schedulable()
 {
   return 1;
-  /*
   int i, j, rt_cnt, min_period;
   uint bmask;
 
@@ -330,9 +329,55 @@ is_schedulable()
   }
 
   return 1;
-  */
+  
 }
+*/
 
+
+int is_schedulable() {
+    if(myproc()->policy==1)return 1;
+    struct proc *p;
+    int num_procs = 0;
+    int deadlines[NPROC];
+    int exec_times[NPROC];
+
+    // Collect the deadlines and execution times of all the runnable and running processes in ptable
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if(p->state == RUNNABLE || p->state == RUNNING) {
+            deadlines[num_procs] = p->deadline+p->start_time-ticks;
+            exec_times[num_procs] = p->exec_time-p->elapsed_time;
+            num_procs++;
+        }
+    }
+
+    // Sort the deadlines and execution times arrays in increasing order of deadlines
+    for(int i = 0; i < num_procs; i++) {
+        for(int j = i + 1; j < num_procs; j++) {
+            if(deadlines[i] > deadlines[j]) {
+                int temp = deadlines[i];
+                deadlines[i] = deadlines[j];
+                deadlines[j] = temp;
+
+                temp = exec_times[i];
+                exec_times[i] = exec_times[j];
+                exec_times[j] = temp;
+            }
+        }
+    }
+
+    // Check if any process misses its deadline
+    int completion_time = 0;
+    for(int i = 0; i < num_procs; i++) {
+        completion_time += exec_times[i];
+        if(completion_time > deadlines[i]) {
+            // Deadline is missed, so the set is not schedulable
+            return 0;
+        }
+    }
+    cprintf("Augmented task set is schedulable ^_^ !\n");
+    // All processes meet their deadlines, so the set is schedulable
+    return 1;
+}
 
 
 int
